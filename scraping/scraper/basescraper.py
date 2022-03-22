@@ -112,7 +112,8 @@ class BaseScraper(ABC):
             None: For a successful visit.
         """
         self.logger.info(f'Accessing {url}.')
-        for i in range(0, AppConfig.get_driver_max_retry()):
+        max_retry = AppConfig.get_driver_max_retry()
+        for i in range(0, max_retry):
             try:
                 self.driver.get(url)
             except WebDriverException:
@@ -122,8 +123,7 @@ class BaseScraper(ABC):
             else:
                 self.logger.info(f'Visited {url}.')
                 return None
-        self.logger.critical(f'Error happened when visiting {url}.')
-        raise(f'Program aborted due to unable to visit {url}.')
+        raise WebDriverException(f'Failed to visit {url} after {max_retry} retries.')
 
     def _quitdriver(self):
         if self.driver:
