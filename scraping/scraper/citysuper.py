@@ -360,6 +360,11 @@ class CitySuperScraper(BaseScraper):
                                         self.logger.warning('No "View All" button found in {} - {}. Screenshot dumped at {}.'.format(
                                             cat1, cat2, fileutil.dump_screenshot(self.driver, 'err_citysuper_scraping')))
                                         continue
+                                    except Exception as ex:
+                                        self.logger.warning('Error happened: {} Screenshot dumped at {}.'.format(
+                                            ex, fileutil.dump_screenshot(self.driver, 'err_citysuper_scraping')))
+                                        self.logger.info('Continue to next 2nd-category.')
+                                        continue
                                 except TimeoutException:
                                     try:
                                         sec_cat_div_el = WebDriverWait(self.driver, type(self)._DRIVER_TIMEOUT, type(self)._DRIVER_TIMEOUT).until(lambda d: d.find_element(
@@ -380,6 +385,11 @@ class CitySuperScraper(BaseScraper):
                                         # continue to scrape next product
                                         self.logger.warning('No product grid found in {} - {}. Screenshot dumped at {}.'.format(
                                             cat1, cat2, fileutil.dump_screenshot(self.driver, 'err_citysuper_scraping')))
+                                        continue
+                                    except Exception as ex:
+                                        self.logger.warning('Error happened: {} Screenshot dumped at {}.'.format(
+                                            ex, fileutil.dump_screenshot(self.driver, 'err_citysuper_scraping')))
+                                        self.logger.info('Continue to next 2nd-category.')
                                         continue
                             finally:
                                 self.driver.close()

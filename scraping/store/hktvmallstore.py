@@ -13,4 +13,4 @@ class HKTVmallStore(BaseStore):
 
     def __repr__(self):
         return 'HKTVmallStore(name="{}", cat="{}", address="{}", tel="{}", opening_hours="{}", frozen_pickup="{}", chill_pickup="{}", lat="{}", lng="{}", area="{}", district="{}", created_ts="{}", updated_ts="{}")'.format(
-            self.name, self.cat, self.address, self.tel, self.opening_hours, self.frozen_pickup, self.chill_pickup, self.lat, self.lng, self.area, self.district, dateutil.str_of_dt_dmYHMS(self.created_ts), dateutil.str_of_dt_dmYHMS(self.updated_ts))
+            self.name, self.cat, self.address, self.tel, self.opening_hours, self.frozen_pickup, self.chill_pickup, self.lat, self.lng, self.area, self.district, self.created_ts, self.updated_ts)

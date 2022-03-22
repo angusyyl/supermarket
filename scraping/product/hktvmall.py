@@ -13,4 +13,4 @@ class HKTVmallPdt(BaseProduct):
 
     def __repr__(self):
         return 'HKTVmallPdt(pdt_id="{}", cat1="{}", cat2="{}", s_desc="{}", l_desc="{}", detail_url="{}", is_out_of_stock="{}", img_url="{}", price="{}", created_ts="{}", updated_ts="{}")'.format(
-            self.pdt_id, self.cat1, self.cat2, self.s_desc, self.l_desc, self.detail_url, self.is_out_of_stock, self.img_url, self.price, dateutil.str_of_dt_dmYHMS(self.created_ts), dateutil.str_of_dt_dmYHMS(self.updated_ts))
+            self.pdt_id, self.cat1, self.cat2, self.s_desc, self.l_desc, self.detail_url, self.is_out_of_stock, self.img_url, self.price, self.created_ts, self.updated_ts)

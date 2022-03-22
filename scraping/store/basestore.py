@@ -1,10 +1,12 @@
 from abc import ABC, abstractmethod
 import datetime
 
+from util import dateutil
+
 class BaseStore(ABC):
     """Abstract base class for Store
     """
-    def __init__(self, name, address, tel, opening_hours, lat, lng, created_ts=datetime.datetime.now(), updated_ts=datetime.datetime.now()):
+    def __init__(self, name, address, tel, opening_hours, lat, lng, created_ts=dateutil.str_of_utcnow_YmdHMS(), updated_ts=dateutil.str_of_utcnow_YmdHMS()):
         self.name = name
         self.address = address
         self.tel = tel

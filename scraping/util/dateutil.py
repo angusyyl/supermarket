@@ -1,4 +1,4 @@
-import datetime
+from datetime import datetime, timezone
 
 
 def str_of_now_Ymd():
@@ -15,7 +15,7 @@ def str_of_now_YmdHMS():
     Returns:
         str: current datetime in YYYYMMDD24HHMMSS format
     """
-    return datetime.datetime.now().strftime('%Y%m%d%H%M%S')
+    return datetime.now().strftime('%Y%m%d%H%M%S')
 
 def str_of_dt_dmYHMS(dt):
     """Get string of given datetime in DD-MM-YYYY 24HH:MM:SS format.
@@ -26,7 +26,7 @@ def str_of_dt_dmYHMS(dt):
     Returns:
         str: string of given datetime in DD-MM-YYYY 24HH:MM:SS format
     """
-    return datetime.datetime.strftime(dt, '%d-%m-%Y %H:%M:%S')
+    return datetime.strftime(dt, '%d-%m-%Y %H:%M:%S')
 
 def dt_of_now():
     """Get current datetime as datetime.
@@ -34,4 +34,20 @@ def dt_of_now():
     Returns:
         datetime: current datetime without timezone info
     """
-    return datetime.datetime.now()
+    return datetime.now()
+
+def dt_of_utcnow():
+    """Get current UTC datetime as datetime.
+
+    Returns:
+        datetime: current UTC datetime without timezone info
+    """
+    return datetime.now(timezone.utc)
+
+def str_of_utcnow_YmdHMS():
+    """Get current UTC datetime as datetime.
+
+    Returns:
+        datetime: current UTC datetime without timezone info
+    """
+    return dt_of_utcnow().strftime('%Y-%m-%d %H:%M:%S %Z')

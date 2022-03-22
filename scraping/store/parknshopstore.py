@@ -11,4 +11,4 @@ class ParknShopStore(BaseStore):
 
     def __repr__(self):
         return 'ParknShopStore(name="{}", brand="{}", address="{}", tel="{}", opening_hours="{}", lat="{}", lng="{}", region="{}", district="{}", created_ts="{}", updated_ts="{}")'.format(
-            self.name, self.brand, self.address, self.tel, self.opening_hours, self.lat, self.lng, self.region, self.district, dateutil.str_of_dt_dmYHMS(self.created_ts), dateutil.str_of_dt_dmYHMS(self.updated_ts))
+            self.name, self.brand, self.address, self.tel, self.opening_hours, self.lat, self.lng, self.region, self.district, self.created_ts, self.updated_ts)
