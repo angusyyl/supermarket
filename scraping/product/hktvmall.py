@@ -3,14 +3,24 @@ from util import dateutil
 
 
 class HKTVmallPdt(BaseProduct):
-    def __init__(self, pdt_id, s_desc, price, img_url, detail_url=None, l_desc=None, is_out_of_stock=None, cat1=None, cat2=None):
-        super().__init__(s_desc, price, img_url, l_desc, is_out_of_stock)
-        self.cat1 = cat1
+    def __init__(self, s_desc, price, cat1, img_url, l_desc, detail_url, pdt_id, cat2, is_out_of_stock=False, img=None):
+        """Constructor
+
+        Args:
+            s_desc (str): The short description.
+            price (str): The price with currency symbol, if any.
+            cat1 (str): The main product category to which the product item belongs.
+            img_url (str): The url which a later batch download process uses to fetch and store the product image.
+            l_desc (str): The full description.
+            detail_url (str): The url of the product item page.
+            pdt_id (str): An unique product id which may be found from the DOM of the scraped website.
+            cat2 (str): The 2nd-level product category.
+            is_out_of_stock (bool, optional): Indicator of the availability. True if the product item cannot be added to the basket. Defaults to False.
+            img (str, optional): The stored image path locally. Defaults to None.
+        """
+        super().__init__(s_desc, price, cat1, img_url, l_desc, detail_url, is_out_of_stock, img)
         self.cat2 = cat2
         self.pdt_id = pdt_id
-        self.detail_url = detail_url
-        self.img_url = img_url
 
     def __repr__(self):
-        return 'HKTVmallPdt(pdt_id="{}", cat1="{}", cat2="{}", s_desc="{}", l_desc="{}", detail_url="{}", is_out_of_stock="{}", img_url="{}", price="{}", created_ts="{}", updated_ts="{}")'.format(
-            self.pdt_id, self.cat1, self.cat2, self.s_desc, self.l_desc, self.detail_url, self.is_out_of_stock, self.img_url, self.price, self.created_ts, self.updated_ts)
+        return f'{type(self)}{self.__dict__}'

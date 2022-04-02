@@ -2,7 +2,7 @@ import logging
 import os
 import platform
 import sys
-from abc import ABC, abstractmethod, abstractstaticmethod
+from abc import ABC, abstractmethod
 
 from selenium.common.exceptions import WebDriverException
 from selenium import webdriver
@@ -129,7 +129,8 @@ class BaseScraper(ABC):
         if self.driver:
             self.driver.quit()
 
-    @abstractstaticmethod
+    @staticmethod
+    @abstractmethod
     def scrape(self):
         pass
 

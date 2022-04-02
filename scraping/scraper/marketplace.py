@@ -135,8 +135,9 @@ class MarketPlaceScraper(BaseScraper):
 
     def _scrape_store(self):
         try:
-            self.logger.info(f'Started web scraping stores of {self.supermarket}.')
-            
+            self.logger.info(
+                f'Started web scraping stores of {self.supermarket}.')
+
             self._get(self.store_url_chi)
 
             # find geolocation map wrapper
@@ -291,11 +292,11 @@ class MarketPlaceScraper(BaseScraper):
                                 'Cannot find the remarks of store in %s in %s at #%d <tr>.', district, area, tr_num)
 
                         store = MarketPlaceStore(
-                            name, address, tel, opening_hours, lat, lng)
+                            area, district, name, address, tel, opening_hours, lat, lng, remarks)
                         self.logger.info('Scraped store: {}'.format(store))
                         self.store_list.append(store)
                         tr_num += tr_num
-                        
+
             self.logger.info('Scraped {} stores: {}.'.format(
                 len(self.store_list), self.store_list))
             self.logger.info('Finished web scraping stores.')

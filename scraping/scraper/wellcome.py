@@ -152,20 +152,12 @@ class WellcomeScraper(BaseScraper):
                             opening_hours = None
                             self.logger.warning(
                                 f'Cannot find the opening hours of store in {district} in {area} at #{tr_num} <tr>.', exc_info=1)
-                        try:
-                            remarks = row_el.find_element(
-                                By.CSS_SELECTOR, '.views-field.views-field-field-free-parking').text
-                        except Exception:
-                            remarks = None
-                            self.logger.warning(
-                                f'Cannot find the remarks of store in {district} in {area} at #{tr_num} <tr>.', exc_info=1)
 
                         store = WellcomeStore(
-                            name, address, tel, opening_hours, lat, lng, remarks, area, district)
+                            name, address, area, district, tel, opening_hours, lat, lng)
                         self.logger.info('Scraped store: {}'.format(store))
                         self.store_list.append(store)
-                        tr_num = tr_num + 1
-                    time.sleep(0.5)
+                        tr_num = tr_num + 1                        
             self.logger.info('Scraped {} stores: {}.'.format(
                 len(self.store_list), self.store_list))
             self.logger.info('Finished web scraping stores.')

@@ -135,8 +135,7 @@ class CitySuperScraper(BaseScraper):
                     self.logger.warning(
                         'Cannot find the opening_hours of store %s.', name)
 
-                store = CitySuperStore(
-                    name, address, None, opening_hours, None, None)
+                store = CitySuperStore(name, address, opening_hours)
                 self.logger.info('Scraped store: {}'.format(store))
                 self.store_list.append(store)
 
@@ -217,7 +216,7 @@ class CitySuperScraper(BaseScraper):
                         f'Cannot find the short description of the {i+1}th product information.', exc_info=1)
                 try:
                     price = WebDriverWait(self.driver, type(self)._DRIVER_TIMEOUT, type(self)._DRIVER_TIMEOUT).until(lambda d: pdt_div_el.find_element(
-                        By.CSS_SELECTOR, 'span.visually-hidden')).text
+                        By.CSS_SELECTOR, 'span.grid-product__price--current>span.visually-hidden')).text
                 except:
                     price = None
                     self.logger.warning(
@@ -225,14 +224,14 @@ class CitySuperScraper(BaseScraper):
 
                 if img_url is not None and pdt_id is not None:
                     try:
-                        fileutil.download_img(
+                        img = fileutil.download_img(
                             self.supermarket, img_url, pdt_id)
                     except:
                         self.logger.warning(
                             f'Failed to download {img_url}.', exc_info=1)
 
-                pdt = CitySuperPdt(
-                    pdt_id, s_desc, price, img_url, cat1=cat1, cat2=cat2, cat3=cat3, detail_url=detail_url)
+                pdt = CitySuperPdt(s_desc, price, cat1, img_url,
+                                   None, detail_url, pdt_id, cat2, img=img, cat3=cat3)
                 self.logger.info(
                     'Scraped product: {}.'.format(pdt))
 
@@ -363,7 +362,8 @@ class CitySuperScraper(BaseScraper):
                                     except Exception as ex:
                                         self.logger.warning('Error happened: {} Screenshot dumped at {}.'.format(
                                             ex, fileutil.dump_screenshot(self.driver, 'err_citysuper_scraping')))
-                                        self.logger.info('Continue to next 2nd-category.')
+                                        self.logger.info(
+                                            'Continue to next 2nd-category.')
                                         continue
                                 except TimeoutException:
                                     try:
@@ -389,7 +389,8 @@ class CitySuperScraper(BaseScraper):
                                     except Exception as ex:
                                         self.logger.warning('Error happened: {} Screenshot dumped at {}.'.format(
                                             ex, fileutil.dump_screenshot(self.driver, 'err_citysuper_scraping')))
-                                        self.logger.info('Continue to next 2nd-category.')
+                                        self.logger.info(
+                                            'Continue to next 2nd-category.')
                                         continue
                             finally:
                                 self.driver.close()
@@ -418,6 +419,6 @@ class CitySuperScraper(BaseScraper):
     def scrape(self):
         try:
             self._scrape_store()
-            self._scrape_product()
+            # self._scrape_product()
         finally:
             self._quitdriver()

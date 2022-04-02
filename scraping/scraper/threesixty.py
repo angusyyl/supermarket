@@ -102,7 +102,7 @@ class ThreeSixtyScraper(BaseScraper):
                 except TimeoutException:
                     self.logger.exception('Cannot find store information.')
                     raise
-                
+
             self.logger.info('Scraped {} stores: {}.'.format(
                 len(self.store_list), self.store_list))
             self.logger.info('Finished web scraping stores.')

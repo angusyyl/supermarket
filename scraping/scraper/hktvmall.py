@@ -1,4 +1,5 @@
 from sys import exc_info
+import os
 
 
 from selenium.webdriver.common.by import By
@@ -276,7 +277,7 @@ class HKTVmallScraper(BaseScraper):
                                     'Cannot find the chill_pickup of store.', exc_info=1)
 
                             store = HKTVmallStore(
-                                name, cat, address, opening_hours, frozen_pickup, chill_pickup, area, district)
+                                name, cat, address, area, district, opening_hours, frozen_pickup, chill_pickup)
                             self.logger.info('Scraped store: {}'.format(store))
                             self.store_list.append(store)
 
@@ -363,12 +364,15 @@ class HKTVmallScraper(BaseScraper):
                 By.CSS_SELECTOR, 'span.total')).get_attribute('innerText')
             no_of_pages = self._get_pagelen(no_of_pages)
         except:
-            self.info.warning('No total page number can be found. Page skipped. Screenshot dumped at {}.'.format(
+            self.logger.warning('No total page number can be found. Page skipped. Screenshot dumped at {}.'.format(
                 fileutil.dump_screenshot(self.driver, 'err_hktvmall_scraping')))
             return None
 
         self.logger.info(
             f'{str(no_of_pages)} page(s) found of {cat1} - {cat2}.')
+        if not no_of_pages:
+            self.logger.warning('Screenshot dumped at {}.'.format(
+                fileutil.dump_screenshot(self.driver, 'err_hktvmall_scraping')))
 
         for pg in range(0, no_of_pages):
             try:
@@ -423,12 +427,14 @@ class HKTVmallScraper(BaseScraper):
 
                 if img_url is not None and pdt_id is not None:
                     try:
-                        fileutil.download_img(self.supermarket, img_url, pdt_id)
+                        img = fileutil.download_img(
+                            self.supermarket, img_url, pdt_id)
                     except:
-                        self.logger.warning(f'Failed to download {img_url}.', exc_info=1)
+                        self.logger.warning(
+                            f'Failed to download {img_url}.', exc_info=1)
 
-                pdt = HKTVmallPdt(
-                    pdt_id, s_desc, price, img_url, cat1=cat1, cat2=cat2, detail_url=detail_url)
+                pdt = HKTVmallPdt(s_desc, price, cat1, img_url,
+                                  None, detail_url, pdt_id, cat2, img=img)
                 self.logger.info(
                     'Scraped product: {}.'.format(pdt))
 
@@ -501,6 +507,7 @@ class HKTVmallScraper(BaseScraper):
 
                 if cat1 in menu_categories:
                     try:
+                        cat1_pdt_list = []
                         cat2_item_a_els = cat1_item_div_el.find_elements(
                             By.CSS_SELECTOR, 'div.clearfix>div.submenu-nav>ul>li>a.link')
                         for cat2_item_a_el in cat2_item_a_els:
@@ -524,6 +531,7 @@ class HKTVmallScraper(BaseScraper):
 
                                 self.logger.info(
                                     f'Scraped {len(cat2_pdt_list)} {cat2} products at 2nd category page.')
+                                cat1_pdt_list.extend(cat2_pdt_list)
                                 self.pdt_list.extend(cat2_pdt_list)
                             except:
                                 self.logger.exception(
@@ -533,14 +541,22 @@ class HKTVmallScraper(BaseScraper):
                                 self.driver.close()
                                 self.logger.info('Closed "second_cat_tab".')
                                 self.driver.switch_to.window(cat1_window)
+
+                        # save the products after each 1st category to avoid data loss in case of program aborted
+                        self._save_pdt_data(cat1_pdt_list, cat1)
+
+                        self.logger.info(f'Saved product data of {cat1}.')
                     except TimeoutException:
                         self.logger.critical(
                             'Cannot find any archor links of 2nd-category menu items. Program aborted.')
                         raise
+                    except:
+                        # save as much as scraped products to avoid data loss in case of program aborted
+                        self._save_pdt_data(cat1_pdt_list, cat1)
 
-                    # make an incremental save of the products to avoid data loss in case of program aborted
-                    self._save_pdt_data()
-                    self.logger.info(f'Saved product data of {cat1}.')
+                    # # make an incremental save of the products to avoid data loss in case of program aborted
+                    # self._save_pdt_data()
+                    # self.logger.info(f'Saved product data of {cat1}.')
                 else:
                     self.logger.info(f'Skipped category {cat1}.')
                     continue
@@ -551,10 +567,20 @@ class HKTVmallScraper(BaseScraper):
         except:
             self.logger.exception(
                 'Error happened during web scraping products!')
+        pass
+
+    def _save_pdt_data(self, pdt_list, cat1):
+        filename = os.path.join(AppConfig.get_config(
+            f'{self.supermarket}_PDT_DATA', 'DATA'))
+        dot_idx = filename.rfind('.')
+        filename = filename[:dot_idx] + '_' + \
+            cat1.replace('/', '') + filename[dot_idx:]
+        fileutil.jsonpickle_w(filename, pdt_list)
+        self.logger.info('Dumped product data.')
 
     def scrape(self):
         try:
             self._scrape_store()
-            self._scrape_product()
+            # self._scrape_product()
         finally:
             self._quitdriver()

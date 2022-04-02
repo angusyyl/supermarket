@@ -26,7 +26,7 @@ class ParknshopScraper(BaseScraper):
         self.logger.debug('Found all store divs')
 
         return div_els
-        
+
     def _queue_up(self):
         """Wait until the queue finished.
         """
@@ -41,7 +41,7 @@ class ParknshopScraper(BaseScraper):
                 f'Started web scraping stores of {self.supermarket}.')
 
             self._get(self.store_url_chi)
-            
+
             self._queue_up()
 
             # find the list[WebElement] of store divs
@@ -132,7 +132,7 @@ class ParknshopScraper(BaseScraper):
                         'Cannot find the tel of store at #%d <div>.', i + 1)
 
                 store = ParknShopStore(
-                    name, brand, address, tel, opening_hours, lat, lng, region, district)
+                    region, district, brand, name, address, tel, opening_hours, lat, lng)
                 self.logger.info('Scraped store: {}'.format(store))
                 self.store_list.append(store)
 
