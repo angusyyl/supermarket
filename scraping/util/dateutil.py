@@ -7,7 +7,7 @@ def str_of_now_Ymd():
     Returns:
         str: current date in YYYYMMDD format
     """
-    return datetime.date.today().strftime('%Y%m%d')
+    return datetime.now().strftime('%Y%m%d')
 
 def str_of_now_YmdHMS():
     """Get current datetime as string in YYYYMMDD24HHMMSS format.
