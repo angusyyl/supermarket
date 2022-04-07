@@ -493,6 +493,13 @@ class HKTVmallScraper(BaseScraper):
                     'Cannot find the 1st-category menu items. Program aborted.')
                 raise
 
+            # menu categories to be skipped
+            skip_menu_categories = AppConfig.get_config(
+                'HKTVMALL_SKIP_CAT_ENG', 'PRGM_CONFIG').split(self._MENU_SEPARATOR)
+            skip_menu_categories.extend(AppConfig.get_config(
+                'HKTVMALL_SKIP_CAT_CHI', 'PRGM_CONFIG').split(self._MENU_SEPARATOR))
+            self.logger.info(f'Skipped scraping categories: {skip_menu_categories}.')
+            
             # store the ID of the original window at 1st-category page for later
             cat1_window = self.driver.current_window_handle
 
@@ -514,6 +521,10 @@ class HKTVmallScraper(BaseScraper):
                             cat2 = cat2_item_a_el.get_attribute('innerText')
                             cat2 = cat2[:cat2.index('\n')].strip()
                             self.logger.debug('cat2: %s', cat2)
+                            
+                            if cat2 in skip_menu_categories:
+                                self.logger.info(f'Skipped cat2: {cat2}.')
+                                continue
                             cat2_href = cat2_item_a_el.get_attribute('href')
                             try:
                                 self.driver.switch_to.new_window(
@@ -536,27 +547,18 @@ class HKTVmallScraper(BaseScraper):
                             except:
                                 self.logger.exception(
                                     f'Error happened during scraping the product info. Skipped category {cat2}.')
-                                continue
                             finally:
                                 self.driver.close()
                                 self.logger.info('Closed "second_cat_tab".')
                                 self.driver.switch_to.window(cat1_window)
-
-                        # save the products after each 1st category to avoid data loss in case of program aborted
-                        self._save_pdt_data(cat1_pdt_list, cat1)
-
-                        self.logger.info(f'Saved product data of {cat1}.')
+                                
+                                # save the products after scraping each 2nd category to avoid data loss in case of program aborted
+                                self._save_pdt_data(cat1_pdt_list, cat1, cat2)
+                                self.logger.info(f'Saved product data of {cat1} - {cat2}.')
                     except TimeoutException:
                         self.logger.critical(
                             'Cannot find any archor links of 2nd-category menu items. Program aborted.')
                         raise
-                    except:
-                        # save as much as scraped products to avoid data loss in case of program aborted
-                        self._save_pdt_data(cat1_pdt_list, cat1)
-
-                    # # make an incremental save of the products to avoid data loss in case of program aborted
-                    # self._save_pdt_data()
-                    # self.logger.info(f'Saved product data of {cat1}.')
                 else:
                     self.logger.info(f'Skipped category {cat1}.')
                     continue
@@ -569,18 +571,19 @@ class HKTVmallScraper(BaseScraper):
                 'Error happened during web scraping products!')
         pass
 
-    def _save_pdt_data(self, pdt_list, cat1):
+    def _save_pdt_data(self, pdt_list, cat1, cat2):
         filename = os.path.join(AppConfig.get_config(
             f'{self.supermarket}_PDT_DATA', 'DATA'))
         dot_idx = filename.rfind('.')
         filename = filename[:dot_idx] + '_' + \
-            cat1.replace('/', '') + filename[dot_idx:]
+            cat1.replace('/', '') + '_' + \
+                cat2.replace('/', '') + filename[dot_idx:]
         fileutil.jsonpickle_w(filename, pdt_list)
         self.logger.info('Dumped product data.')
 
     def scrape(self):
         try:
-            self._scrape_store()
-            # self._scrape_product()
+            # self._scrape_store()
+            self._scrape_product()
         finally:
             self._quitdriver()
