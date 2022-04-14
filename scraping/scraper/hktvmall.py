@@ -490,7 +490,8 @@ class HKTVmallScraper(BaseScraper):
                 self.logger.info(f'Scraping categories: {menu_categories}.')
             except TimeoutException:
                 self.logger.critical(
-                    'Cannot find the 1st-category menu items. Program aborted.')
+                    'Cannot find the 1st-category menu items. Program aborted. Screenshot dumped at {}.'
+                    .format(fileutil.dump_screenshot(self.driver, 'err_citysuper_scraping')))
                 raise
 
             # menu categories to be skipped

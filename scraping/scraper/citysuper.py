@@ -1,5 +1,6 @@
 from sys import exc_info
 import time
+import os
 
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
@@ -274,12 +275,20 @@ class CitySuperScraper(BaseScraper):
                     'CITYSUPER_MENU_CAT_ENG', 'PRGM_CONFIG').split(self._MENU_SEPARATOR)
                 menu_categories.extend(AppConfig.get_config(
                     'CITYSUPER_MENU_CAT_CHI', 'PRGM_CONFIG').split(self._MENU_SEPARATOR))
+                self.logger.info(f'Scraping categories: {menu_categories}.')
             except TimeoutException:
                 self.logger.critical(
                     'Cannot find the 1st-category menu items. Program aborted. Screenshot dumped at {}.'
                     .format(fileutil.dump_screenshot(self.driver, 'err_citysuper_scraping')))
                 raise
 
+            # menu categories to be skipped
+            skip_menu_categories = AppConfig.get_config(
+                'CITYSUPER_SKIP_CAT_ENG', 'PRGM_CONFIG').split(self._MENU_SEPARATOR)
+            skip_menu_categories.extend(AppConfig.get_config(
+                'CITYSUPER_SKIP_CAT_CHI', 'PRGM_CONFIG').split(self._MENU_SEPARATOR))
+            self.logger.info(f'Skipped scraping categories: {skip_menu_categories}.')
+            
             # store the ID of the original window at 1st-category page for later
             cat1_window = self.driver.current_window_handle
 
@@ -298,11 +307,16 @@ class CitySuperScraper(BaseScraper):
 
                 if cat1 in menu_categories:
                     try:
+                        cat1_pdt_list = []
                         cat2_item_a_els = cat1_item_el.find_elements(
                             By.CSS_SELECTOR, 'div.second-menu__content>div.second-menu__inner>li.second-menu-item>div.second-menu-item__title>a.second-menu-item__link')
                         for cat2_item_a_el in cat2_item_a_els:
                             cat2 = cat2_item_a_el.get_attribute('innerText')
                             self.logger.debug('cat2: %s', cat2)
+                            
+                            if cat2 in skip_menu_categories:
+                                self.logger.info(f'Skipped cat2: {cat2}.')
+                                continue
                             cat2_href = cat2_item_a_el.get_attribute('href')
                             try:
                                 self.driver.switch_to.new_window(
@@ -377,6 +391,7 @@ class CitySuperScraper(BaseScraper):
                                             cat1, cat2, None)
                                         self.logger.info(
                                             f'Scraped {len(cat2_pdt_list)} {cat2} products at 2nd category page.')
+                                        cat1_pdt_list.extend(cat2_pdt_list)
                                         self.pdt_list.extend(
                                             cat2_pdt_list)
                                     except TimeoutException:
@@ -396,15 +411,15 @@ class CitySuperScraper(BaseScraper):
                                 self.driver.close()
                                 self.logger.info('Closed "second_cat_tab".')
                                 self.driver.switch_to.window(cat1_window)
+                                
+                                # save the products after scraping each 2nd category to avoid data loss in case of program aborted
+                                self._save_pdt_data(cat1_pdt_list, cat1, cat2)
+                                self.logger.info(f'Saved product data of {cat1} - {cat2}.')
                     except TimeoutException:
                         self.logger.critical(
                             'Cannot find any archor links of 2nd-category menu items. Program aborted. Screenshot dumped at {}.'
                             .format(fileutil.dump_screenshot(self.driver, 'err_citysuper_scraping')))
                         raise
-
-                    # make an incremental save of the products to avoid data loss in case of program aborted
-                    self._save_pdt_data()
-                    self.logger.info(f'Saved product data of {cat1}.')
                 else:
                     self.logger.info(f'Skipped category {cat1}.')
                     continue
@@ -416,9 +431,19 @@ class CitySuperScraper(BaseScraper):
             self.logger.exception(
                 'Error happened during web scraping products!')
 
+    def _save_pdt_data(self, pdt_list, cat1, cat2):
+        filename = os.path.join(AppConfig.get_config(
+            f'{self.supermarket}_PDT_DATA', 'DATA'))
+        dot_idx = filename.rfind('.')
+        filename = filename[:dot_idx] + '_' + \
+            cat1.replace('/', '') + '_' + \
+                cat2.replace('/', '') + filename[dot_idx:]
+        fileutil.jsonpickle_w(filename, pdt_list)
+        self.logger.info('Dumped product data.')
+
     def scrape(self):
         try:
             self._scrape_store()
-            # self._scrape_product()
+            self._scrape_product()
         finally:
             self._quitdriver()
