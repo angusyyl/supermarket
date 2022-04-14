@@ -6,7 +6,7 @@ class BaseProduct(ABC):
     """Abstract base class for Product
     """
     
-    def __init__(self, s_desc, price, cat1, img_url, l_desc, detail_url, is_out_of_stock=False, img=None, scraped_ts=dateutil.str_of_utcnow_YmdHMS()):
+    def __init__(self, s_desc, price, cat1, img_url, l_desc, detail_url, is_out_of_stock=False, img=None):
         """Base Constructor
 
         Args:
@@ -18,7 +18,6 @@ class BaseProduct(ABC):
             detail_url (str): The url of the product item page.
             is_out_of_stock (bool, optional): Indicator of the availability. True if the product item cannot be added to the basket. Defaults to False.
             img (str, optional): The stored image path locally. Defaults to None.
-            scraped_ts (datetime, optional): The scraped datetime in UTC without timezone info.
         """
         self.s_desc = s_desc
         self.price = price
@@ -28,4 +27,4 @@ class BaseProduct(ABC):
         self.detail_url = detail_url
         self.is_out_of_stock = is_out_of_stock
         self.img = img
-        self.scraped_ts = scraped_ts
+        self.scraped_ts = dateutil.str_of_utcnow_YmdHMS()
