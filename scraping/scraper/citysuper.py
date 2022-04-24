@@ -228,6 +228,7 @@ class CitySuperScraper(BaseScraper):
                         img = fileutil.download_img(
                             self.supermarket, img_url, pdt_id)
                     except:
+                        img = None
                         self.logger.warning(
                             f'Failed to download {img_url}.', exc_info=1)
 
@@ -287,8 +288,9 @@ class CitySuperScraper(BaseScraper):
                 'CITYSUPER_SKIP_CAT_ENG', 'PRGM_CONFIG').split(self._MENU_SEPARATOR)
             skip_menu_categories.extend(AppConfig.get_config(
                 'CITYSUPER_SKIP_CAT_CHI', 'PRGM_CONFIG').split(self._MENU_SEPARATOR))
-            self.logger.info(f'Skipped scraping categories: {skip_menu_categories}.')
-            
+            self.logger.info(
+                f'Skipped scraping categories: {skip_menu_categories}.')
+
             # store the ID of the original window at 1st-category page for later
             cat1_window = self.driver.current_window_handle
 
@@ -307,16 +309,16 @@ class CitySuperScraper(BaseScraper):
 
                 if cat1 in menu_categories:
                     try:
-                        cat1_pdt_list = []
                         cat2_item_a_els = cat1_item_el.find_elements(
                             By.CSS_SELECTOR, 'div.second-menu__content>div.second-menu__inner>li.second-menu-item>div.second-menu-item__title>a.second-menu-item__link')
                         for cat2_item_a_el in cat2_item_a_els:
                             cat2 = cat2_item_a_el.get_attribute('innerText')
                             self.logger.debug('cat2: %s', cat2)
-                            
+
                             if cat2 in skip_menu_categories:
                                 self.logger.info(f'Skipped cat2: {cat2}.')
                                 continue
+                            cat2_pdt_list = []
                             cat2_href = cat2_item_a_el.get_attribute('href')
                             try:
                                 self.driver.switch_to.new_window(
@@ -358,14 +360,14 @@ class CitySuperScraper(BaseScraper):
 
                                                 self.logger.info(
                                                     f'Scraped {len(cat3_pdt_list)} {cat3} products at 3rd category page.')
-                                                self.pdt_list.extend(
-                                                    cat3_pdt_list)
+                                                cat2_pdt_list.extend(cat3_pdt_list)
                                             finally:
                                                 self.driver.close()
                                                 self.logger.info(
                                                     'Closed "third_cat_tab".')
                                                 self.driver.switch_to.window(
                                                     cat2_window)
+                                        self.pdt_list.extend(cat2_pdt_list)
                                     except TimeoutException:
                                         # if there is no "View All" button found, there should be some problems
                                         # take a screenshot for later investigation
@@ -391,9 +393,7 @@ class CitySuperScraper(BaseScraper):
                                             cat1, cat2, None)
                                         self.logger.info(
                                             f'Scraped {len(cat2_pdt_list)} {cat2} products at 2nd category page.')
-                                        cat1_pdt_list.extend(cat2_pdt_list)
-                                        self.pdt_list.extend(
-                                            cat2_pdt_list)
+                                        self.pdt_list.extend(cat2_pdt_list)
                                     except TimeoutException:
                                         # if there is no product grid found, there should be some problems
                                         # take a screenshot for later investigation
@@ -411,10 +411,11 @@ class CitySuperScraper(BaseScraper):
                                 self.driver.close()
                                 self.logger.info('Closed "second_cat_tab".')
                                 self.driver.switch_to.window(cat1_window)
-                                
+
                                 # save the products after scraping each 2nd category to avoid data loss in case of program aborted
-                                self._save_pdt_data(cat1_pdt_list, cat1, cat2)
-                                self.logger.info(f'Saved product data of {cat1} - {cat2}.')
+                                self._save_pdt_data(cat2_pdt_list, cat1, cat2)
+                                self.logger.info(
+                                    f'Saved product data of {cat1} - {cat2}.')
                     except TimeoutException:
                         self.logger.critical(
                             'Cannot find any archor links of 2nd-category menu items. Program aborted. Screenshot dumped at {}.'
@@ -437,7 +438,7 @@ class CitySuperScraper(BaseScraper):
         dot_idx = filename.rfind('.')
         filename = filename[:dot_idx] + '_' + \
             cat1.replace('/', '') + '_' + \
-                cat2.replace('/', '') + filename[dot_idx:]
+            cat2.replace('/', '') + filename[dot_idx:]
         fileutil.jsonpickle_w(filename, pdt_list)
         self.logger.info('Dumped product data.')
 
